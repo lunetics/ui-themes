@@ -18,7 +18,7 @@ Ships with three themes:
 ## Install
 
 ```
-/plugin marketplace add <this repo's GitHub URL or local path>
+/plugin marketplace add yugal1107/ui-themes
 /plugin install ui-themes@ui-themes
 ```
 
