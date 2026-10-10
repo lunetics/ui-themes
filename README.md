@@ -9,17 +9,23 @@ Switchable themes for the Claude Code terminal UI:
 
 ## Before and after
 
-**Before**: Claude Code's default look. Replies have no box, prompts get a thin grey bar.
+<table>
+  <tr>
+    <th>Before: Claude Code default</th>
+    <th>After: <code>claude-warm</code></th>
+  </tr>
+  <tr>
+    <td><img src="docs/before.png" alt="Claude Code without ui-themes"></td>
+    <td><img src="docs/after-claude-warm.png" alt="Claude Code with the claude-warm theme"></td>
+  </tr>
+</table>
 
-![Claude Code without ui-themes](docs/before.png)
+Replies get a padded charcoal box and themed markdown, prompts get a padded terracotta box, and the status line follows the theme.
 
-**After**: `claude-warm` theme. Padded terracotta prompts, charcoal reply boxes, themed markdown and status line.
-
-![Claude Code with the claude-warm theme](docs/after-claude-warm.png)
-
-**After**: `night-blue` theme, one `/ui-theme next` away.
-
-![Claude Code with the night-blue theme](docs/after-night-blue.png)
+<p align="center">
+  <b>Also included: <code>night-blue</code></b>, one <code>/ui-theme next</code> away<br><br>
+  <img src="docs/after-night-blue.png" alt="Claude Code with the night-blue theme" width="50%">
+</p>
 
 Ships with three themes:
 
