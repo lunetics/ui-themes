@@ -7,6 +7,20 @@ Switchable themes for the Claude Code terminal UI:
 - A matching one-line status line: model (own icon and colour for Opus, Sonnet, Haiku and Fable), folder, git branch, context, 5h/7d limits
 - `/ui-theme <name>` to switch everything at once
 
+## Before and after
+
+**Before**: Claude Code's default look. Replies have no box, prompts get a thin grey bar.
+
+![Claude Code without ui-themes](docs/before.png)
+
+**After**: `claude-warm` theme. Padded terracotta prompts, charcoal reply boxes, themed markdown and status line.
+
+![Claude Code with the claude-warm theme](docs/after-claude-warm.png)
+
+**After**: `night-blue` theme, one `/ui-theme next` away.
+
+![Claude Code with the night-blue theme](docs/after-night-blue.png)
+
 Ships with three themes:
 
 | Theme | Look |

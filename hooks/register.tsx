@@ -63,6 +63,7 @@ export const register: Register = on => {
       await seed($)
       await load($)
     } catch {}
+    $.ui.invalidate('ui.render')
     await $.command.register({
       name: 'ui-theme',
       description: 'Switch the UI theme (message boxes, reply colours, status line)',
@@ -98,7 +99,8 @@ export const register: Register = on => {
 
   // Your prompts: padded box in the theme's prompt colour
   on('ui.render', { component: 'UserMessage' }, ($, e, next) => {
-    if (e.props.origin.kind !== 'composer') return next(e)
+    // skip task notifications and messages from other agents; style everything you sent (live or resumed)
+    if (e.props.task || e.props.from) return next(e)
     const { Box, Text } = $.ui.resolve(e)
     return (
       <Box backgroundColor={theme.prompt.bg} paddingX={2} paddingY={1} marginTop={1}>
