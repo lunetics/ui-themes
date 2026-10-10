@@ -90,16 +90,23 @@ export function renderMarkdown(src: string, t: Table): El {
       continue
     }
 
-    // > quote
+    // > quote — the quoted lines are markdown again (lists, paragraphs), drawn in a frame;
+    // a single-line quote keeps the old │ prefix
     if (/^\s*>/.test(line)) {
       const q: string[] = []
       while (i < lines.length && /^\s*>/.test(lines[i] ?? '')) q.push((lines[i++] ?? '').replace(/^\s*>\s?/, ''))
-      push(
-        <Box flexDirection="row">
-          <Text color={MD.quote}>│ </Text>
-          <Text color={MD.quote}>{inline(q.join(' '), t, `q${i}`)}</Text>
-        </Box>,
-      )
+      push(q.length === 1
+        ? (
+          <Box flexDirection="row">
+            <Text color={MD.quote}>│ </Text>
+            <Text color={MD.quote}>{inline(q[0] ?? '', t, `q${i}`)}</Text>
+          </Box>
+        )
+        : (
+          <Box borderStyle="round" borderColor={MD.quote} paddingX={1} flexDirection="column">
+            {renderMarkdown(q.join('\n'), t)}
+          </Box>
+        ))
       continue
     }
 
