@@ -27,6 +27,16 @@ Replies get a padded charcoal box and themed markdown, prompts get a padded terr
   <img src="docs/after-night-blue.png" alt="Claude Code with the night-blue theme" width="50%">
 </p>
 
+## Why I made this
+
+I like coding agents like [Pi](https://github.com/badlogic/pi-mono), [OpenCode](https://opencode.ai) and [Oh My Pi](https://github.com/can1357/oh-my-pi). Their terminal UIs are clean, structured and light. Claude Code's felt messy and heavy next to them, and I didn't enjoy using it.
+
+But I still use Claude Code. Claude's models are what I want to work with, and my Claude subscription only works through the Claude Code CLI, not through other harnesses. So I was stuck with a UI I didn't like.
+
+When Claude Code added mods, I started tuning it to feel more like those agents: padded message boxes, readable markdown colours, a compact status line, and themes I can switch in one command. It isn't a copy of any of them, and it isn't finished, but it's already much nicer to live in every day.
+
+If you're in the same spot, using Claude Code for the models while missing the feel of other agent CLIs, this plugin is for you.
+
 Ships with three themes:
 
 | Theme | Look |
