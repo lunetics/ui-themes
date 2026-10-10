@@ -1,0 +1,14 @@
+{
+  "name": "ui-themes",
+  "description": "Switchable UI themes for Claude Code",
+  "owner": {
+    "name": "Yugal Burde"
+  },
+  "plugins": [
+    {
+      "name": "ui-themes",
+      "source": "./",
+      "description": "Switchable themes for Claude Code: message boxes, markdown colours and a matching status line."
+    }
+  ]
+}
