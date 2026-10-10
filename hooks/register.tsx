@@ -57,6 +57,14 @@ async function themeNames($: EngineInterface) {
     .sort()
 }
 
+async function applyTheme($: EngineInterface, name: string) {
+  await load($, name)
+  await $.fs.write(`${await themesDir($)}/active`, name + '\n')
+  $.ui.invalidate('ui.render')
+}
+
+const PICKER = 'ui-theme-picker'
+
 export const register: Register = on => {
   on('session.start', async ($, e, next) => {
     try {
@@ -67,7 +75,7 @@ export const register: Register = on => {
     await $.command.register({
       name: 'ui-theme',
       description: 'Switch the UI theme (message boxes, reply colours, status line)',
-      argumentHint: '[name | next | statusline]',
+      argumentHint: '[name | next | list | statusline]',
     })
     return next(e)
   })
@@ -79,7 +87,12 @@ export const register: Register = on => {
       const list = names.map(n => (n === theme.name ? `**${n}**` : `\`${n}\``)).join(' · ')
       let want = e.args.trim()
       if (!want) {
-        return { text: `Theme: **${theme.name}**\n\n${list}\n\n\`/ui-theme <name>\` to switch, \`/ui-theme next\` to cycle, \`/ui-theme statusline\` to set up the matching status line.\nAdd your own by copying a file in \`${d}\`.` }
+        // no name: open a picker the person moves through with the arrow keys
+        await $.ui.open({ id: PICKER, title: 'UI theme', focus: true, closeOnEscape: true, rows: names.length + 4 })
+        return {}
+      }
+      if (want === 'list') {
+        return { text: `Theme: **${theme.name}**\n\n${list}\n\n\`/ui-theme\` to pick from a list, \`/ui-theme <name>\` to switch, \`/ui-theme next\` to cycle, \`/ui-theme statusline\` to set up the matching status line.\nAdd your own by copying a file in \`${d}\`.` }
       }
       if (want === 'next') want = names[(names.indexOf(theme.name) + 1) % names.length] ?? theme.name
       if (want === 'statusline') {
@@ -88,13 +101,43 @@ export const register: Register = on => {
       if (!names.includes(want)) {
         return { text: `No theme \`${want}\`. Available: ${list}` }
       }
-      await load($, want)
-      await $.fs.write(`${d}/active`, want + '\n')
-      $.ui.invalidate('ui.render')
+      await applyTheme($, want)
       return { text: `Theme switched to **${want}**. The status line follows on its next refresh.` }
     } catch (err) {
       return { text: `Theme error: ${String(err)}` }
     }
+  })
+
+  // The picker: one row per theme with its description; Enter applies it, Esc closes
+  on('ui.render', { component: 'Pane', requestId: PICKER }, async ($, e) => {
+    if (e.surface === 'mobile') {
+      const { Text } = $.ui.resolve(e)
+      return <Text>Themes: {(await themeNames($)).join(', ')}. Use {'/ui-theme <name>'} to switch.</Text>
+    }
+    const { Box, Text, Select } = $.ui.resolve(e)
+    const d = await themesDir($)
+    const options = []
+    for (const n of await themeNames($)) {
+      let about = ''
+      try { about = (JSON.parse(await $.fs.read(`${d}/${n}.json`)) as { description?: string }).description ?? '' } catch {}
+      options.push({ value: n, label: about ? `${n}  —  ${about}` : n })
+    }
+    return (
+      <Box flexDirection="column" paddingX={1}>
+        <Select
+          key="theme"
+          autoFocus
+          options={options}
+          value={theme.name}
+          onSelect={async (value: string) => {
+            await applyTheme($, value)
+            await $.ui.close({ id: PICKER })
+            $.ui.toast(`Theme: ${value}`)
+          }}
+        />
+        <Text dimColor>↑/↓ to choose · Enter to apply · Esc to close</Text>
+      </Box>
+    )
   })
 
   // Your prompts: padded box in the theme's prompt colour

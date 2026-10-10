@@ -5,7 +5,7 @@ Switchable themes for the Claude Code terminal UI:
 - Your prompts and Claude's replies drawn in padded, coloured boxes (Claude Code's defaults have no reply box and little prompt padding; the plugin draws both itself)
 - Reply markdown in theme colours (headings, `inline code`, **bold**, links, bullets, quotes)
 - A matching one-line status line: model (own icon and colour for Opus, Sonnet, Haiku and Fable), folder, git branch, context, 5h/7d limits
-- `/ui-theme <name>` to switch everything at once
+- `/ui-theme` to pick a theme from a list and switch everything at once
 
 ## Before and after
 
@@ -58,7 +58,8 @@ Restart Claude Code once after installing.
 
 | Command | What it does |
 |---|---|
-| `/ui-theme` | Show the current theme and the available ones |
+| `/ui-theme` | Open a picker: arrow keys to choose, Enter to apply, Esc to close |
+| `/ui-theme list` | Show the current theme and the available ones as text |
 | `/ui-theme <name>` | Switch theme |
 | `/ui-theme next` | Cycle to the next theme |
 | `/ui-theme statusline` | Show how to enable the matching status line |
