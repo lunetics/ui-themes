@@ -29,7 +29,7 @@ Replies get a padded charcoal box and themed markdown, prompts get a padded terr
 
 ## Why I made this
 
-I like coding agents like [Pi](https://github.com/badlogic/pi-mono), [OpenCode](https://opencode.ai) and [Oh My Pi](https://github.com/can1357/oh-my-pi). Their terminal UIs are clean, structured and light. Claude Code's felt messy and heavy next to them, and I didn't enjoy using it.
+I like coding agents like [Pi](https://pi.dev/), [OpenCode](https://opencode.ai) and [Oh My Pi](https://github.com/can1357/oh-my-pi). Their terminal UIs are clean, structured and light. Claude Code's felt messy and heavy next to them, and I didn't enjoy using it.
 
 But I still use Claude Code. Claude's models are what I want to work with, and my Claude subscription only works through the Claude Code CLI, not through other harnesses. So I was stuck with a UI I didn't like.
 
