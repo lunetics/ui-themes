@@ -42,7 +42,8 @@ export function inline(s: string, t: Table, keyBase: string): El[] {
   return out
 }
 
-export function renderMarkdown(src: string, t: Table): El {
+// tone: colour for plain text (paragraphs, list items); quotes pass MD.quote
+export function renderMarkdown(src: string, t: Table, tone?: string): El {
   const { Box, Text, Code, Markdown } = t
   const lines = src.replace(/\s+$/, '').split('\n')
   const blocks: El[] = []
@@ -90,16 +91,24 @@ export function renderMarkdown(src: string, t: Table): El {
       continue
     }
 
-    // > quote
+    // > quote: plain prose keeps the │ bar; a quote with structure (list, heading,
+    // blank line, code) is markdown again, drawn in a frame in the quote colour
     if (/^\s*>/.test(line)) {
       const q: string[] = []
       while (i < lines.length && /^\s*>/.test(lines[i] ?? '')) q.push((lines[i++] ?? '').replace(/^\s*>\s?/, ''))
-      push(
-        <Box flexDirection="row">
-          <Text color={MD.quote}>│ </Text>
-          <Text color={MD.quote}>{inline(q.join(' '), t, `q${i}`)}</Text>
-        </Box>,
-      )
+      const structured = q.length > 1 && q.some(l => !l.trim() || /^(\s*([-*+]|\d+[.)])\s| {0,3}#{1,6}\s|\s*```)/.test(l))
+      push(!structured
+        ? (
+          <Box flexDirection="row">
+            <Text color={MD.quote}>│ </Text>
+            <Text color={MD.quote}>{inline(q.map(l => l.trim()).join(' '), t, `q${i}`)}</Text>
+          </Box>
+        )
+        : (
+          <Box borderStyle="round" borderColor={MD.quote} paddingX={1} flexDirection="column">
+            {renderMarkdown(q.join('\n'), t, MD.quote)}
+          </Box>
+        ))
       continue
     }
 
@@ -121,7 +130,7 @@ export function renderMarkdown(src: string, t: Table): El {
           items.push(
             <Box key={`li${i}`} flexDirection="row" paddingLeft={depth * 2}>
               <Box width={marker.length + 1} flexShrink={0}><Text color={MD.bullet}>{marker}</Text></Box>
-              <Box flexGrow={1} flexShrink={1}><Text>{inline(text, t, `li${i}`)}</Text></Box>
+              <Box flexGrow={1} flexShrink={1}><Text color={tone}>{inline(text, t, `li${i}`)}</Text></Box>
             </Box>,
           )
         } else break
@@ -139,7 +148,7 @@ export function renderMarkdown(src: string, t: Table): El {
       para.push(l.trim())
       i++
     }
-    push(<Text>{inline(para.join(' '), t, `p${i}`)}</Text>)
+    push(<Text color={tone}>{inline(para.join(' '), t, `p${i}`)}</Text>)
   }
 
   return <Box flexDirection="column">{blocks}</Box>
