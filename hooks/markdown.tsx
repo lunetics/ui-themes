@@ -76,7 +76,7 @@ export function renderMarkdown(src: string, t: Table): El {
     }
 
     // # headings
-    const head = line.match(/^(#{1,6})\s+(.*)$/)
+    const head = line.match(/^ {0,3}(#{1,6})\s+(.*)$/) // up to 3 spaces of indent, as in markdown
     if (head) {
       push(<Text bold color={MD.heading}>{inline(head[2] ?? '', t, `h${i}`)}</Text>)
       i++
@@ -131,10 +131,11 @@ export function renderMarkdown(src: string, t: Table): El {
     }
 
     // paragraph: join until a blank line or another block starts
+    // the first line is always taken, so a line no other rule claims can't stall the loop (#1)
     const para: string[] = []
     while (i < lines.length) {
       const l = lines[i] ?? ''
-      if (!l.trim() || /^\s*(```|\||#{1,6}\s|>|([-*+]|\d+[.)])\s)/.test(l)) break
+      if (para.length && (!l.trim() || /^(\s*(```|\||>|([-*+]|\d+[.)])\s)| {0,3}#{1,6}\s)/.test(l))) break
       para.push(l.trim())
       i++
     }
