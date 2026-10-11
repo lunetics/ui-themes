@@ -3,8 +3,9 @@ import type { EngineInterface, Register } from 'claude-code'
 import { MD, renderMarkdown } from './markdown'
 
 // Themes live in ~/.claude/ui-themes/<name>.json and the active name in ~/.claude/ui-themes/active.
-// The built-in themes and the status line script are copied there on first start;
-// the status line script reads the same files.
+// The built-in themes and the status line script are copied there on first start and never
+// overwritten. When a plugin update ships a different status line script, the person is told and
+// applies it with `/ui-theme statusline update` (#2). The status line script reads the same files.
 
 type Theme = {
   name: string
@@ -27,7 +28,7 @@ async function themesDir($: EngineInterface) {
   return dir
 }
 
-// Copy built-in themes (without overwriting the user's edits) and the latest status line script.
+// Copy built-in themes and the status line script if missing; never overwrite the person's copies.
 async function seed($: EngineInterface) {
   const d = await themesDir($)
   const shipped = `${$.plugin.root}/themes`
@@ -36,8 +37,58 @@ async function seed($: EngineInterface) {
       await $.fs.write(`${d}/${f.name}`, await $.fs.read(`${shipped}/${f.name}`))
     }
   }
-  await $.fs.write(`${d}/statusline.sh`, await $.fs.read(`${$.plugin.root}/statusline/statusline.sh`))
+  if (!(await $.fs.exists(`${d}/statusline.sh`))) await installStatusline($)
   if (!(await $.fs.exists(`${d}/active`))) await $.fs.write(`${d}/active`, 'claude-warm\n')
+}
+
+// --- status line script: installed once, updated only on request (#2) ---
+
+// The marker holds a hash of the shipped script last installed, so an update is told apart
+// from the person's own edits to their copy.
+const MARKER = '.statusline.installed'
+
+function hash(text: string) {
+  let h = 5381
+  for (let i = 0; i < text.length; i++) h = ((h << 5) + h + text.charCodeAt(i)) >>> 0
+  return h.toString(16)
+}
+
+async function pluginVersion($: EngineInterface) {
+  try { return (JSON.parse(await $.fs.read(`${$.plugin.root}/.claude-plugin/plugin.json`)) as { version?: string }).version ?? '?' } catch { return '?' }
+}
+
+async function shippedStatusline($: EngineInterface) {
+  return await $.fs.read(`${$.plugin.root}/statusline/statusline.sh`)
+}
+
+async function installStatusline($: EngineInterface) {
+  const d = await themesDir($)
+  const text = await shippedStatusline($)
+  await $.fs.write(`${d}/statusline.sh`, text)
+  await $.fs.write(`${d}/${MARKER}`, hash(text) + '\n')
+}
+
+// 'none': nothing to do; 'available': the plugin ships a script the person hasn't applied yet
+async function statuslineUpdate($: EngineInterface): Promise<'none' | 'available'> {
+  const d = await themesDir($)
+  const shipped = hash(await shippedStatusline($))
+  if (await $.fs.exists(`${d}/${MARKER}`)) {
+    return (await $.fs.read(`${d}/${MARKER}`)).trim() === shipped ? 'none' : 'available'
+  }
+  // no marker yet (installed by an older version): identical copy → record it silently
+  const current = (await $.fs.exists(`${d}/statusline.sh`)) ? hash(await $.fs.read(`${d}/statusline.sh`)) : ''
+  if (current === shipped) {
+    await $.fs.write(`${d}/${MARKER}`, shipped + '\n')
+    return 'none'
+  }
+  return 'available'
+}
+
+// Line counts of what an update changes, without a full diff
+function changeSummary(before: string, after: string) {
+  const a = before.split('\n'), b = after.split('\n')
+  const inA = new Set(a), inB = new Set(b)
+  return { added: b.filter(l => !inA.has(l)).length, removed: a.filter(l => !inB.has(l)).length }
 }
 
 async function load($: EngineInterface, name?: string) {
@@ -71,11 +122,16 @@ export const register: Register = on => {
       await seed($)
       await load($)
     } catch {}
+    try {
+      if ((await statuslineUpdate($)) === 'available') {
+        $.ui.toast(`ui-themes ${await pluginVersion($)} has a new status line script. Run /ui-theme statusline update to review and apply it.`)
+      }
+    } catch {}
     $.ui.invalidate('ui.render')
     await $.command.register({
       name: 'ui-theme',
       description: 'Switch the UI theme (message boxes, reply colours, status line)',
-      argumentHint: '[name | next | list | statusline]',
+      argumentHint: '[name | next | list | statusline [update]]',
     })
     return next(e)
   })
@@ -95,8 +151,22 @@ export const register: Register = on => {
         return { text: `Theme: **${theme.name}**\n\n${list}\n\n\`/ui-theme\` to pick from a list, \`/ui-theme <name>\` to switch, \`/ui-theme next\` to cycle, \`/ui-theme statusline\` to set up the matching status line.\nAdd your own by copying a file in \`${d}\`.` }
       }
       if (want === 'next') want = names[(names.indexOf(theme.name) + 1) % names.length] ?? theme.name
-      if (want === 'statusline') {
-        return { text: `To use the themed status line, add this to \`~/.claude/settings.json\`:\n\n\`\`\`json\n"statusLine": { "type": "command", "command": "bash ${d}/statusline.sh" }\n\`\`\`\n\nIt needs \`jq\` and looks best with a Nerd Font.` }
+      if (want === 'statusline' || want === 'statusline update') {
+        const installed = `${d}/statusline.sh`
+        const state = await statuslineUpdate($)
+        if (want === 'statusline') {
+          const pending = state === 'available'
+            ? `\n\n**Update available:** ui-themes ${await pluginVersion($)} ships a different script. Run \`/ui-theme statusline update\` to review and apply it.`
+            : ''
+          return { text: `To use the themed status line, add this to \`~/.claude/settings.json\`:\n\n\`\`\`json\n"statusLine": { "type": "command", "command": "bash ${installed}" }\n\`\`\`\n\nIt needs \`jq\` and looks best with a Nerd Font. Plugin updates never change this file on their own.${pending}` }
+        }
+        if (state === 'none') return { text: `Your status line script is up to date (\`${installed}\`).` }
+        const before = (await $.fs.exists(installed)) ? await $.fs.read(installed) : ''
+        const after = await shippedStatusline($)
+        const { added, removed } = changeSummary(before, after)
+        if (before) await $.fs.write(`${installed}.bak`, before)
+        await installStatusline($)
+        return { text: `Status line script updated to the version in ui-themes ${await pluginVersion($)}: ${added} line(s) added, ${removed} removed.${before ? `\n\nYour previous copy is saved as \`${installed}.bak\`.` : ''}\nReview it any time: \`${installed}\`` }
       }
       if (!names.includes(want)) {
         return { text: `No theme \`${want}\`. Available: ${list}` }

@@ -63,6 +63,7 @@ Restart Claude Code once after installing.
 | `/ui-theme <name>` | Switch theme |
 | `/ui-theme next` | Cycle to the next theme |
 | `/ui-theme statusline` | Show how to enable the matching status line |
+| `/ui-theme statusline update` | Apply a new status line script from a plugin update (your old copy is kept as `.bak`) |
 
 ### Status line
 
@@ -73,6 +74,8 @@ The status line is optional. Add this to `~/.claude/settings.json`:
 ```
 
 It needs `jq`, and its icons need a [Nerd Font](https://www.nerdfonts.com/) in your terminal.
+
+The script is copied to `~/.claude/ui-themes/statusline.sh` once and is never overwritten by plugin updates, because it runs with your permissions on every refresh. When an update ships a new version, you get a message at startup; run `/ui-theme statusline update` to apply it. Your edits to the script are kept until you do.
 
 ## Make your own theme
 
