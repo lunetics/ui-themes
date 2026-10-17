@@ -79,7 +79,7 @@ The script is copied to `~/.claude/ui-themes/statusline.sh` once and is never ov
 
 ## Make your own theme
 
-Themes live in `~/.claude/ui-themes/<name>.json` (the built-in ones are copied there on first start). Copy one, rename it and change the colours; it shows up in `/ui-theme` right away.
+Themes live in `~/.claude/ui-themes/<name>.json` (the built-in ones are copied there on first start). On Windows that is `%USERPROFILE%\.claude\ui-themes`. Copy one, rename it and change the colours; it shows up in `/ui-theme` right away.
 
 ```json
 {

@@ -23,8 +23,14 @@ const theme: Theme = {
 
 let dir = ''
 
+// Windows has no HOME; the home folder is in USERPROFILE (#4). With neither set, stop rather
+// than write to the root of the current drive; the built-in theme still renders.
 async function themesDir($: EngineInterface) {
-  if (!dir) dir = `${(await $.env.get('HOME')) ?? ''}/.claude/ui-themes`
+  if (!dir) {
+    const home = (await $.env.get('HOME')) || (await $.env.get('USERPROFILE'))
+    if (!home) throw new Error('no home folder: neither HOME nor USERPROFILE is set')
+    dir = `${home}/.claude/ui-themes`
+  }
   return dir
 }
 
