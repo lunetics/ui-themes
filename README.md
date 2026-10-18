@@ -105,3 +105,7 @@ Themes live in `~/.claude/ui-themes/<name>.json` (the built-in ones are copied t
 - Code blocks and tables keep Claude Code's own rendering.
 - While a reply is still streaming, Claude Code draws it with its own view; it moves into the coloured box once the block finishes.
 - `/theme` is Claude Code's own command and is left untouched; this plugin uses `/ui-theme`.
+
+## License
+
+[MIT](LICENSE) © 2026 Yugal Burde
