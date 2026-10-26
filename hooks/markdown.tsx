@@ -148,7 +148,8 @@ export function renderMarkdown(src: string, t: Table, tone?: string): El {
       para.push(l.trim())
       i++
     }
-    push(<Text color={tone}>{inline(para.join(' '), t, `p${i}`)}</Text>)
+    // soft line breaks stay line breaks, like the host renderer
+    push(<Text color={tone}>{para.flatMap((p, n) => [...(n ? ['\n'] : []), ...inline(p, t, `p${i}-${n}`)])}</Text>)
   }
 
   return <Box flexDirection="column">{blocks}</Box>
