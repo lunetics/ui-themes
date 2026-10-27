@@ -14,6 +14,13 @@ test('consecutive lines of one paragraph stay separate lines', async ($, on) => 
   expect(json).toContain('"📄 Bootloader → file:///home/mb/b.md"')
   expect(json).toContain('"📄 Memory → file:///home/mb/c.md"')
   expect(json).not.toContain('a.md 📄')
+  // a "\n" separator child stands between each adjacent pair of lines
+  const [first, second, third] = json.split('"\\n"')
+  expect(first).toContain('a.md')
+  expect(first).not.toContain('b.md')
+  expect(second).toContain('b.md')
+  expect(second).not.toContain('c.md')
+  expect(third).toContain('c.md')
 })
 
 test('inline formatting still works on each line of a multi-line paragraph', async ($, on) => {
@@ -25,4 +32,11 @@ test('inline formatting still works on each line of a multi-line paragraph', asy
   expect(json).toContain('"plain line"')
   expect(json).not.toContain('now then')
   expect(json).not.toContain('end plain')
+  // a "\n" separator child stands between each adjacent pair of lines
+  const [first, second, third] = json.split('"\\n"')
+  expect(first).toContain('"foo()"')
+  expect(first).not.toContain('"bold"')
+  expect(second).toContain('"bold"')
+  expect(second).not.toContain('"plain line"')
+  expect(third).toContain('"plain line"')
 })
